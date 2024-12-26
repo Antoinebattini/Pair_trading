@@ -55,3 +55,6 @@ class Data_Visualization():
         # Show the plot
         plt.title(f"Plot for the pair ({key[0]},{key[1]})")
         plt.show()
+
+    def function_test():
+        print(test)
