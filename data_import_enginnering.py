@@ -15,7 +15,14 @@ class DataImportEnginnering():
     def RawData(self):
         self.rawdata = {stock:yf.download(stock,start=self.start_date,end=self.end_date,period=self.period)[self.colone] for stock in self.stock_list}
         return self.rawdata 
-        
+    
+    def Fill_Na(self,data):
+        self.data = data 
+        data.ffill(axis = 0,inplace =True )
+        data.bfill(axis =0,inplace = True)
+        return data
+
+
 
     def normalize(self,data): 
         self.data = data
