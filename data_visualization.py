@@ -56,5 +56,49 @@ class Data_Visualization():
         plt.title(f"Plot for the pair ({key[0]},{key[1]})")
         plt.show()
 
-    def function_test():
-        print(test)
+    def Entry_trading_points(self,data,pair):
+        df_test = data
+        marker_map = {'green': '^', 'red': 'v'}
+        color_map = {'green': 'green', 'red': 'red'}
+        fig, ax = plt.subplots(figsize=(12, 6))
+
+        # Plot X_i vs time as a line
+        ax.plot(df_test.index, df_test[pair], label='X_i Value', color='blue', linewidth=2)
+
+        # Plot upward triangles for 'green'
+        green_points = df_test[df_test == 'green']
+        ax.scatter(
+            green_points.index,
+            green_points[pair],
+            marker=marker_map['green'],
+            color=color_map['green'],
+            s=50,  # Marker size
+            label='Green Marker'
+        )
+
+        # Plot downward triangles for 'red'
+        red_points = df_test[df_test== 'red']
+        ax.scatter(
+            red_points.index,
+            red_points[pair],
+            marker=marker_map['red'],
+            color=color_map['red'],
+            s=50,  # Marker size
+            label='Red Marker'
+        )
+
+        # Customize the plot
+        ax.set_xlabel('Time', fontsize=12)
+        ax.set_ylabel(f'Spread pair {pair}', fontsize=12)
+        ax.set_title(f'Trading entry points for the pair {pair}', fontsize=14)
+        ax.legend()
+        ax.grid(True)
+
+        # Rotate x-axis labels for better readability
+        plt.xticks(rotation=45)
+
+        # Tight layout for better spacing
+        plt.tight_layout()
+
+        # Show the plot
+        plt.show()
