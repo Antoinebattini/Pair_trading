@@ -1,5 +1,6 @@
 import statsmodels.api as sm
 import numpy as np 
+import pandas as pd
 
 class Spread:
 
@@ -23,12 +24,29 @@ class Spread:
             x = values[key[0]]
             y = values[key[1]]
 
-            x = sm.add_constant(x)
-            model =sm.OLS(x,y)
+            data = pd.concat([x, y], axis=1).replace([np.inf, -np.inf], np.nan).dropna()
+            x_clean = data.iloc[:, 0]
+            y_clean = data.iloc[:, 1]
+            
+            x_clean = sm.add_constant(x_clean)
+            model =sm.OLS(x_clean,y_clean)
             results = model.fit()
-            beta = results[1]
+            beta = results.params[1]
 
             values['Delta'] = np.abs(values[key[0]] - values[key[1]]*beta)
             values['Delta_norm'] = (values['Delta'] - values['Delta'].rolling(10).mean()) / values['Delta'].rolling(10).std()
             values.drop(['Delta'], axis = 1, inplace=True )
         return dictionnaire
+
+    def dollar_neutral_spread2(self):
+        dictionnaire = self.dictionnaire #non normalised data
+        for key,values in dictionnaire.items():
+            Series1_sum = values[key[0]].apply(np.sum)
+            Series2_sum = values[key[1]].apply(np.sum)
+            dollar_coef = Series1_sum/Series2_sum
+
+            values['Delta'] = np.abs(values[key[0]] - values[key[1]]*dollar_coef)
+            values['Delta_norm'] = (values['Delta'] - values['Delta'].rolling(10).mean()) / values['Delta'].rolling(10).std()
+            values.drop(['Delta'], axis = 1, inplace=True )
+        return dictionnaire            
+            
