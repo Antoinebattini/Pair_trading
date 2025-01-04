@@ -1,59 +1,74 @@
-from alpaca.trading.client import TradingClient
-from alpaca.trading.requests import GetAssetsRequest
-from alpaca.trading.requests import MarketOrderRequest
-from alpaca.trading.enums import OrderSide, TimeInForce
+#pip install alpaca-trade-api
+
+import os
+from alpaca_trade_api import REST, TimeFrame
+import pandas as pd
+
 
 class trading():
 
     def __init__(self):
+        # Récupérer les clés API depuis les variables d'environnement
+        self.API_KEY = os.getenv('APCA_API_KEY_ID')
+        self.API_SECRET = os.getenv('APCA_API_SECRET_KEY')
+        self.BASE_URL = 'https://paper-api.alpaca.markets'  # Utiliser l'URL pour le paper trading
         
-        self.account = account()
-        self.trading_client = self.account.getAccount()
-        self.keys = self.account.getKeys()
+        # Initialiser l'API REST d'Alpaca
+        self.api = REST(self.API_KEY, self.API_SECRET, self.BASE_URL, api_version='v2')
+        
+        # Vérifier la connexion
+        account = self.api.get_account()
+        if account.status != 'ACTIVE':
+            raise Exception('Compte Alpaca non actif. Vérifiez vos clés API et l\'URL.')
 
-        self.ticker = tickers()
-        self.stock_df = self.ticker.getStock()
-
-        # HTTP request header
-        self.headers = {
-            "accept": "application/json",
-            "APCA-API-KEY-ID": self.keys[1],
-            "APCA-API-SECRET-KEY": self.keys[2]
-        }
-
-        self.endpoint_positions = self.keys[0] + "/v2/positions"
-        self.endpoint_orders = self.keys[0] + "/v2/orders"
-
-
-    def signals_to_trade(self, spread, signal):
-        pass
-
-    def open(self, ticker1, ticker2, price1, price2):
-        order_long = MarketOrderRequest(
-            symbol = ticker1
-            qty = 1
-            side=OrderSide.BUY,
-            time_in_force=TimeInForce.DAY,
-            client_order_id= ticker1 + "/ID" #changer ID par le ID
-        ) 
-        order_short = MarketOrderRequest(
-            symbol = ticker2
-            qty = price1/price2
-            side=OrderSide.BUY,
-            time_in_force=TimeInForce.DAY,
-            client_order_id= ticker2 + "/ID" #changer ID par le ID
-        ) 
-        market_order_long = self.trading_client.submit_order(
-                        order_data=order_long
-                    )
-        market_order_short = self.trading_client.submit_order(
-                        order_data=order_short
-                    )
-
-
-    def close(self):
-        url_ticker1 = self.endpoint_positions + "/" + ticker1
-        url_ticker2 = self.endpoint_positions + "/" + ticker2
-
-        response_ticker1 = requests.delete(url_ticker1, headers=self.headers)
-        response_ticker2 = requests.delete(url_ticker2, headers=self.headers)
+    def open_order(self, ticker_buy, ticker_sell, qty_buy, qty_sell, type_order='market', time_in_force='gtc'):
+        try:
+            # Placer l'ordre d'achat
+            ordre_buy = self.api.submit_order(
+                symbol=ticker_buy,
+                qty=qty_buy,
+                side='buy',
+                type=type_order,
+                time_in_force=time_in_force
+            )
+            
+            # Placer l'ordre de vente
+            ordre_sell = self.api.submit_order(
+                symbol=ticker_sell,
+                qty=qty_sell,
+                side='sell',
+                type=type_order,
+                time_in_force=time_in_force
+            )
+            
+            return ordre_buy, ordre_sell
+        except Exception as e:
+            raise Exception(f"Erreur lors du placement des ordres de paire: {e}")
+    
+    def close_order(self, ticker_buy, ticker_sell, type_order='market', time_in_force='gtc'):
+        try:
+            # Récupérer les positions actuelles
+            position_buy = self.api.get_position(ticker_buy)
+            position_sell = self.api.get_position(ticker_sell)
+            
+            # Placer l'ordre de vente pour l'actif acheté
+            ordre_close_buy = self.api.submit_order(
+                symbol=ticker_buy,
+                qty=position_buy.qty,
+                side='sell',
+                type=type_order,
+                time_in_force=time_in_force
+            )
+            
+            # Placer l'ordre d'achat pour l'actif vendu
+            ordre_close_sell = self.api.submit_order(
+                symbol=ticker_sell,
+                qty=position_sell.qty,
+                side='buy',
+                type=type_order,
+                time_in_force=time_in_force
+            )
+            
+            return ordre_close_buy, ordre_close_sell
+        except Exception as e:
+            raise Exception(f"Erreur lors de la fermeture des positions de paire: {e}")

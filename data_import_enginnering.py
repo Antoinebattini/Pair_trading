@@ -24,6 +24,12 @@ class DataImportEnginnering():
         self.data_normalized.fillna(method = 'ffill',inplace = True)
 
         return self.data_normalized 
+
+    def Fill_Na(self,data):
+        self.data = data 
+        data.ffill(axis = 0,inplace =True )
+        data.bfill(axis =0,inplace = True)
+        return data
     
     def Dictionnary_to_Dataframe(self,dictionnaire):
         data_list = [dictionnaire[stock] for stock in dictionnaire.keys()]

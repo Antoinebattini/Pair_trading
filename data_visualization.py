@@ -27,7 +27,7 @@ class Data_Visualization():
         plt.show()
 
 
-    def pair_historic(self,data ):
+    def pair_historic(self,data,key):
         plt.figure(figsize=(15, 20))
         x = data[key].index
         y1 = data[key][key[0]]
@@ -55,6 +55,17 @@ class Data_Visualization():
         # Show the plot
         plt.title(f"Plot for the pair ({key[0]},{key[1]})")
         plt.show()
+
+
+    def portfolio_units(self,data,key):
+        plt.figure(figsize=(20,5))
+        plt.plot(data[key].index, data[key], 'orange', label = 'units to hold')
+        plt.title("Portfolio units to hold")
+        plt.xlabel("Date")
+        plt.ylabel("Portfolio holdings")
+        plt.legend()
+        plt.show()
+
 
     def function_test():
         print(test)

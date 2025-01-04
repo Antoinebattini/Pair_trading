@@ -41,8 +41,16 @@ class Spread:
     def dollar_neutral_spread2(self):
         dictionnaire = self.dictionnaire #non normalised data
         for key,values in dictionnaire.items():
-            Series1_sum = values[key[0]].apply(np.sum)
-            Series2_sum = values[key[1]].apply(np.sum)
+
+            Series1 = values[key[0]]
+            Series2 = values[key[1]]
+
+            data = pd.concat([Series1, Series2], axis=1).replace([np.inf, -np.inf], np.nan).dropna()
+            Series1_clean = data.iloc[:, 0]
+            Series2_clean = data.iloc[:, 1]
+
+            Series1_sum = Series1_clean.apply(np.sum)
+            Series2_sum = Series2_clean.apply(np.sum)
             dollar_coef = Series1_sum/Series2_sum
 
             values['Delta'] = np.abs(values[key[0]] - values[key[1]]*dollar_coef)
