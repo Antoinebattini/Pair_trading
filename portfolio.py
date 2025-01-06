@@ -12,7 +12,7 @@ class Signaux():
         portfolio = self.data.copy()
         mean = portfolio.mean(axis=0)
         std = portfolio.std(axis =0)
-        signals_up = pd.DataFrame(np.array([portfolio,np.ones(len(portfolio)),np.ones(len(portfolio))]),columns=['Portfolio','up','center'])
+        signals_up = pd.DataFrame(np.array([portfolio,np.zeros(len(portfolio)),np.zeros(len(portfolio))]).T,columns=['Portfolio','up','center'])
         signals_up.loc[signals_up['Portfolio']> mean + self.threshold * std ,'up'] = 1
         signals_up.loc[signals_up['Portfolio']> mean ,'center'] = 1
         signals_up.loc['Somme'] = signals_up.loc[up] + signals_up.loc[center]
@@ -38,7 +38,7 @@ class Signaux():
         portfolio = self.data.copy()
         mean = portfolio.mean(axis=0)
         std = portfolio.std(axis =0)
-        signals_up = pd.DataFrame(np.array([portfolio,np.ones(len(portfolio)),np.ones(len(portfolio))]),columns=['Portfolio','up','center'])
+        signals_up = pd.DataFrame(np.array([portfolio,np.zeros(len(portfolio)),np.zeros(len(portfolio))]).T,columns=['Portfolio','up','center'])
         signals_up.loc[signals_up['Portfolio']< mean - self.threshold * std ,'up'] = 1
         signals_up.loc[signals_up['Portfolio']< mean ,'center'] = 1
         signals_up.loc['Somme'] = signals_up.loc[up] + signals_up.loc[center]
