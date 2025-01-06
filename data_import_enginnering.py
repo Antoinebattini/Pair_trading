@@ -21,7 +21,7 @@ class DataImportEnginnering():
         self.data = data
         self.value = data.agg(['min','max'])
         self.data_normalized = (data - self.value.loc['min']) / (self.value.loc['max'] - self.value.loc['min'])
-        self.data_normalized.fillna(method = 'ffill',inplace = True)
+        self.data_normalized.ffill(inplace = True)
 
         return self.data_normalized 
 

@@ -11,7 +11,14 @@ class Spread:
     def dollar_neutral_spread(self):
         dictionnaire = self.dictionnaire
         for key,values in dictionnaire.items():
-            values['Delta'] = np.abs(values[key[0]]/values[key[1]])
+            x = values[key[0]]
+            y = values[key[1]]
+
+            data = pd.concat([x, y], axis=1).ffill().bfill()
+            x_clean = data.iloc[:, 0]
+            y_clean = data.iloc[:, 1]
+            
+            values['Delta'] = np.abs(x_clean/y_clean)
             values['Delta_norm'] = (values['Delta'] - values['Delta'].rolling(10).mean()) / values['Delta'].rolling(10).std()
             values.drop(['Delta'], axis = 1, inplace=True )
     
@@ -24,7 +31,7 @@ class Spread:
             x = values[key[0]]
             y = values[key[1]]
 
-            data = pd.concat([x, y], axis=1).replace([np.inf, -np.inf], np.nan).dropna()
+            data = pd.concat([x, y], axis=1).ffill().bfill()
             x_clean = data.iloc[:, 0]
             y_clean = data.iloc[:, 1]
             
@@ -33,7 +40,7 @@ class Spread:
             results = model.fit()
             beta = results.params[1]
 
-            values['Delta'] = np.abs(values[key[0]] - values[key[1]]*beta)
+            values['Delta'] = values[key[0]] - values[key[1]]*beta
             values['Delta_norm'] = (values['Delta'] - values['Delta'].rolling(10).mean()) / values['Delta'].rolling(10).std()
             values.drop(['Delta'], axis = 1, inplace=True )
         return dictionnaire
@@ -45,7 +52,7 @@ class Spread:
             Series1 = values[key[0]]
             Series2 = values[key[1]]
 
-            data = pd.concat([Series1, Series2], axis=1).replace([np.inf, -np.inf], np.nan).dropna()
+            data = pd.concat([Series1, Series2], axis=1).ffill().bfill()
             Series1_clean = data.iloc[:, 0]
             Series2_clean = data.iloc[:, 1]
 
@@ -53,7 +60,7 @@ class Spread:
             Series2_sum = Series2_clean.apply(np.sum)
             dollar_coef = Series1_sum/Series2_sum
 
-            values['Delta'] = np.abs(values[key[0]] - values[key[1]]*dollar_coef)
+            values['Delta'] = values[key[0]] - values[key[1]]*dollar_coef 
             values['Delta_norm'] = (values['Delta'] - values['Delta'].rolling(10).mean()) / values['Delta'].rolling(10).std()
             values.drop(['Delta'], axis = 1, inplace=True )
         return dictionnaire            
