@@ -30,7 +30,27 @@ class Signaux():
 
         
 
+    def trading_signals(data,colone):
 
+        mean = data[colone].mean()
+        std = data[colone].std()
+        data['above_threshold'] = 0
+        data['above_mean'] = 0
+        data ['GAT'] = 0  #'GAT' stand for go above the threshold 
+        data ['GUM'] = 0 
+        data.loc[ (data[colone] > mean +std), 'above_threshold' ] = 1
+        data.loc[ (data[colone] > mean), 'above_mean' ] = 1
+        data.loc[ ( data['above_threshold'] - data['above_threshold'].shift(1)) >0, 'GAT'] = 1
+        data.loc[ ( data['above_mean'] - data['above_mean'].shift(1)) <0, 'GUM'] = -1
+        data['Signal'] = data['GAT'] + data['GUM']
+        acc = 0 
+        data['Signal_up'] = [(acc := min(acc + x, 1)) for x in data['Signal']]
+        data['In'] = (data['Signal_up'] > data['Signal_up'].shift(1)) *1
+        data['Out'] = (data['Signal_up'] < data['Signal_up'].shift(1)) * -1
+        data ['Trading_points']= data['Out'] + data['In']
+        data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
+
+        return data 
 
 
 
