@@ -30,7 +30,7 @@ class Signaux():
 
         
 
-    def trading_signals(data,colone):
+    def trading_signals_buy(data,colone):
 
         mean = data[colone].mean()
         std = data[colone].std()
@@ -44,7 +44,7 @@ class Signaux():
         data.loc[ ( data['above_mean'] - data['above_mean'].shift(1)) <0, 'GUM'] = -1
         data['Signal'] = data['GAT'] + data['GUM']
         acc = 0 
-        data['Signal_up'] = [(acc := min(acc + x, 1)) for x in data['Signal']]
+        data['Signal_up'] = [(acc := max(min(acc + x, 1)),0) for x in data['Signal']]
         data['In'] = (data['Signal_up'] > data['Signal_up'].shift(1)) *1
         data['Out'] = (data['Signal_up'] < data['Signal_up'].shift(1)) * -1
         data ['Trading_points']= data['Out'] + data['In']
@@ -52,7 +52,27 @@ class Signaux():
 
         return data 
 
+    def trading_signals_sell(data,colone):
 
+        mean = data[colone].mean()
+        std = data[colone].std()
+        data['under_threshold'] = 0
+        data['under_mean'] = 0
+        data ['GUT'] = 0  #'GUT' stand for go under the threshold 
+        data ['GAM'] = 0 
+        data.loc[ (data[colone] < mean  - std), 'under_threshold' ] = 1
+        data.loc[ (data[colone] > mean), 'under_mean' ] = 1
+        data.loc[ ( data['under_threshold'] - data['under_threshold'].shift(1)) >0, 'GUT'] = 1
+        data.loc[ ( data['under_mean'] - data['under_mean'].shift(1)) <0, 'GAM'] = -1
+        data['Signal'] = data['GUT'] + data['GAM']
+        acc = 0 
+        data['Signal_up'] = [(acc := max(min(acc + x, 1)),0) for x in data['Signal']]
+        data['In'] = (data['Signal_up'] < data['Signal_up'].shift(1)) *1
+        data['Out'] = (data['Signal_up'] > data['Signal_up'].shift(1)) * -1
+        data ['Trading_points']= data['Out'] + data['In']
+        data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
+
+        return data 
 
 
 
