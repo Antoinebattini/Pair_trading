@@ -8,52 +8,77 @@ class Signaux():
         self.threshold = threshold
 
 
-    def entry_points_up(self):
-        portfolio = self.data.copy()
-        mean = portfolio.mean(axis=0)
-        std = portfolio.std(axis =0)
-        signals_up = pd.DataFrame(np.array([portfolio,np.zeros(len(portfolio)),np.zeros(len(portfolio))]).T,columns=['Portfolio','up','center'])
-        signals_up.loc[signals_up['Portfolio']> mean + self.threshold * std ,'up'] = 1
-        signals_up.loc[signals_up['Portfolio']> mean ,'center'] = 1
-        signals_up['Somme'] = signals_up.loc[:,'up'] + signals_up.loc[:,'center']
-        signals_up['Signal'] = np.zeros(len(portfolio))
-        i=0
-        while i < len(portfolio):
-            if signals_up.loc[i,'Somme'] == 2:
-                # Vérifier si c'est un "2 majeur"
-                if i == 0 or signals_up.loc[i-1,'Somme'] != 2:
-                    signals_up.loc[i,'Signal'] = 1  # Marquer le "2 majeur"
-                    # Chercher le premier 0 après ce "2 majeur"
-                    j = i + 1
-                    while j < len(original):
-                        if signals_up.loc[j,'Somme'] == 0:
-                            signals_up.loc[j,'Signal'] = -1
-                            break
-                        j += 1
-            i += 1
-        return signals_up
+    def entry_points(self):
+        df = self.self.data.copy()
+        mean = df.mean(axis=0)
+        std = df.std(axis =0)
+        df = ((df< mean - self.threshold *std) ^( df> mean + self.threshold*std ))*1
+        df = (df!=df.shift(1))*1
+        df.iloc[0] = 0
+        df = (df.cumsum()!=df.cumsum().shift(1))*(df.cumsum())
+        #ici il faudra modifier le code pour essayer de créer de meilleur signaux
+        # dans l'idée si j'ai 2 signaux qui se suivent je ne trade pas 
+        # On verra ca une fois qu'on aura créer des fees pour le rebalancement
+        # par exemple [1020030040050006],il peut être pas mal de mettre une 
+        #période minimum de trade, comme tu le disais mais dasn ce cas on sort "déjà"
+        #du cadre arbitrage pur
+        df= df.applymap(
+            lambda i: np.nan if i == 0 else ('green' if i % 2 == 1 else 'red')
+            )
+        df.iloc[:,:1] = self.self.data.iloc[:,:1]
+        return df
 
-    def entry_points_down(self):
-        portfolio = self.data.copy()
-        mean = portfolio.mean(axis=0)
-        std = portfolio.std(axis =0)
-        signals_down = pd.DataFrame(np.array([portfolio,np.zeros(len(portfolio)),np.zeros(len(portfolio))]).T,columns=['Portfolio','down','center'])
-        signals_down.loc[signals_down['Portfolio']< mean - self.threshold * std ,'down'] = 1
-        signals_down.loc[signals_down['Portfolio']< mean ,'center'] = 1
-        signals_down['Somme'] = signals_down.loc[:,'down'] + signals_down.loc[:,'center']
-        signals_down['Signal'] = np.zeros(len(portfolio))
-        i=0
-        while i < len(portfolio):
-            if signals_down.loc[i,'Somme'] == 2:
-                # Vérifier si c'est un "2 majeur"
-                if i == 0 or signals_down.loc[i-1,'Somme'] != 2:
-                    signals_down.loc[i,'Signal'] = 1  # Marquer le "2 majeur"
-                    # Chercher le premier 0 après ce "2 majeur"
-                    j = i + 1
-                    while j < len(original):
-                        if signals_down.loc[j,'Somme'] == 0:
-                            signals_down.loc[j,'Signal'] = -1
-                            break
-                        j += 1
-            i += 1
-        return signals_down
+        
+
+    def trading_signals_buy(self,colone):
+
+        mean = self.data[colone].mean()
+        std = self.data[colone].std()
+        self.data['above_threshold'] = 0
+        self.data['above_mean'] = 0
+        self.data ['GAT'] = 0  #'GAT' stand for go above the threshold 
+        self.data ['GUM'] = 0 
+        self.data.loc[ (self.data[colone] > mean +std), 'above_threshold' ] = 1
+        self.data.loc[ (self.data[colone] > mean), 'above_mean' ] = 1
+        self.data.loc[ ( self.data['above_threshold'] - self.data['above_threshold'].shift(1)) >0, 'GAT'] = 1
+        self.data.loc[ ( self.data['above_mean'] - self.data['above_mean'].shift(1)) <0, 'GUM'] = -1
+        self.data['Signal'] = self.data['GAT'] + self.data['GUM']
+        acc = 0 
+        self.data['Signal_up'] = [(acc := max(min(acc + x, 1),0)) for x in self.data['Signal']]
+        self.data['In'] = (self.data['Signal_up'] > self.data['Signal_up'].shift(1)) *1
+        self.data['Out'] = (self.data['Signal_up'] < self.data['Signal_up'].shift(1)) * -1
+        self.data ['Trading_points']= self.data['Out'] + self.data['In']
+        self.data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
+
+        return self.data['Trading_points'] 
+
+    def trading_signals_sell(self,colone):
+
+        mean = self.data[colone].mean()
+        std = self.data[colone].std()
+        self.data['under_threshold'] = 0
+        self.data['under_mean'] = 0
+        self.data ['GUT'] = 0  #'GUT' stand for go under the threshold 
+        self.data ['GAM'] = 0 
+        self.data.loc[ (self.data[colone] < mean  - std), 'under_threshold' ] = 1
+        self.data.loc[ (self.data[colone] > mean), 'under_mean' ] = 1
+        self.data.loc[ ( self.data['under_threshold'] - self.data['under_threshold'].shift(1)) >0, 'GUT'] = 1
+        self.data.loc[ ( self.data['under_mean'] - self.data['under_mean'].shift(1)) <0, 'GAM'] = -1
+        self.data['Signal'] = self.data['GUT'] + self.data['GAM']
+        acc = 0 
+        self.data['Signal_up'] = [(acc := max(min(acc + x, 1),0)) for x in self.data['Signal']]
+        self.data['In'] = (self.data['Signal_up'] < self.data['Signal_up'].shift(1)) *1
+        self.data['Out'] = (self.data['Signal_up'] > self.data['Signal_up'].shift(1)) * -1
+        self.data ['Trading_points']= self.data['Out'] + self.data['In']
+        self.data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
+
+        return self.data['Trading_points'] 
+
+
+
+
+
+
+class Trading():
+    def __init__(self):
+        pass
