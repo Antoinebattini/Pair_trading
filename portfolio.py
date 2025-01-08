@@ -4,7 +4,7 @@ import pandas as pd
 class Signaux():
 
     def __init__(self,data,threshold):
-        self.data = data
+        self.data = self.data
         self.threshold = threshold
 
 
@@ -30,51 +30,53 @@ class Signaux():
 
         
 
-    def trading_signals_buy(data,colone):
+    def trading_signals_buy(self,colone):
 
-        mean = data[colone].mean()
-        std = data[colone].std()
-        data['above_threshold'] = 0
-        data['above_mean'] = 0
-        data ['GAT'] = 0  #'GAT' stand for go above the threshold 
-        data ['GUM'] = 0 
-        data.loc[ (data[colone] > mean +std), 'above_threshold' ] = 1
-        data.loc[ (data[colone] > mean), 'above_mean' ] = 1
-        data.loc[ ( data['above_threshold'] - data['above_threshold'].shift(1)) >0, 'GAT'] = 1
-        data.loc[ ( data['above_mean'] - data['above_mean'].shift(1)) <0, 'GUM'] = -1
-        data['Signal'] = data['GAT'] + data['GUM']
+        mean = self.self.data[colone].mean()
+        std = self.data[colone].std()
+        self.data['above_threshold'] = 0
+        self.data['above_mean'] = 0
+        self.data ['GAT'] = 0  #'GAT' stand for go above the threshold 
+        self.data ['GUM'] = 0 
+        self.data.loc[ (self.data[colone] > mean +std), 'above_threshold' ] = 1
+        self.data.loc[ (self.data[colone] > mean), 'above_mean' ] = 1
+        self.data.loc[ ( self.data['above_threshold'] - self.data['above_threshold'].shift(1)) >0, 'GAT'] = 1
+        self.data.loc[ ( self.data['above_mean'] - self.data['above_mean'].shift(1)) <0, 'GUM'] = -1
+        self.data['Signal'] = self.data['GAT'] + self.data['GUM']
         acc = 0 
-        data['Signal_up'] = [(acc := max(min(acc + x, 1)),0) for x in data['Signal']]
-        data['In'] = (data['Signal_up'] > data['Signal_up'].shift(1)) *1
-        data['Out'] = (data['Signal_up'] < data['Signal_up'].shift(1)) * -1
-        data ['Trading_points']= data['Out'] + data['In']
-        data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
+        self.data['Signal_up'] = [(acc := max(min(acc + x, 1)),0) for x in self.data['Signal']]
+        self.data['In'] = (self.data['Signal_up'] > self.data['Signal_up'].shift(1)) *1
+        self.data['Out'] = (self.data['Signal_up'] < self.data['Signal_up'].shift(1)) * -1
+        self.data ['Trading_points_buy']= self.data['Out'] + self.data['In']
+        self.data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
 
-        return data 
+        return self.data['Trading_points_buy']
 
-    def trading_signals_sell(data,colone):
+    def trading_signals_sell(self,colone):
 
-        mean = data[colone].mean()
-        std = data[colone].std()
-        data['under_threshold'] = 0
-        data['under_mean'] = 0
-        data ['GUT'] = 0  #'GUT' stand for go under the threshold 
-        data ['GAM'] = 0 
-        data.loc[ (data[colone] < mean  - std), 'under_threshold' ] = 1
-        data.loc[ (data[colone] > mean), 'under_mean' ] = 1
-        data.loc[ ( data['under_threshold'] - data['under_threshold'].shift(1)) >0, 'GUT'] = 1
-        data.loc[ ( data['under_mean'] - data['under_mean'].shift(1)) <0, 'GAM'] = -1
-        data['Signal'] = data['GUT'] + data['GAM']
+        mean = self.data[colone].mean()
+        std = self.data[colone].std()
+        self.data['under_threshold'] = 0
+        self.data['under_mean'] = 0
+        self.data ['GUT'] = 0  #'GUT' stand for go under the threshold 
+        self.data ['GAM'] = 0 
+        self.data.loc[ (self.data[colone] < mean  - std), 'under_threshold' ] = 1
+        self.data.loc[ (self.data[colone] > mean), 'under_mean' ] = 1
+        self.data.loc[ ( self.data['under_threshold'] - self.data['under_threshold'].shift(1)) >0, 'GUT'] = 1
+        self.data.loc[ ( self.data['under_mean'] - self.data['under_mean'].shift(1)) <0, 'GAM'] = -1
+        self.data['Signal'] = self.data['GUT'] + self.data['GAM']
         acc = 0 
-        data['Signal_up'] = [(acc := max(min(acc + x, 1)),0) for x in data['Signal']]
-        data['In'] = (data['Signal_up'] < data['Signal_up'].shift(1)) *1
-        data['Out'] = (data['Signal_up'] > data['Signal_up'].shift(1)) * -1
-        data ['Trading_points']= data['Out'] + data['In']
-        data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
+        self.data['Signal_up'] = [(acc := max(min(acc + x, 1)),0) for x in self.data['Signal']]
+        self.data['In'] = (self.data['Signal_up'] < self.data['Signal_up'].shift(1)) *1
+        self.data['Out'] = (self.data['Signal_up'] > self.data['Signal_up'].shift(1)) * -1
+        self.data ['Trading_points_sell']= self.data['Out'] + self.data['In']
+        self.data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
 
-        return data 
+        return self.data['Trading_points_sell']
 
 
+    def trading_signals(self,colone):
+        return Signaux.trading_signals_sell(self,colone) + Signaux.trading_signals_buy(self,colone)
 
 
 
