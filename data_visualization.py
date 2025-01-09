@@ -97,6 +97,11 @@ class Data_Visualization():
                 label='Red Marker'
             )
 
+            # Horizontal lines representing mean and std
+            plt.axhline(data[pair].mean())
+            plt.axhline(data[pair].mean()+data[pair].std(), c = "green", label = "Mean + Std")
+            plt.axhline(data[pair].mean()-data[pair].std(), c = "red", label = "Mean - Std")
+            
             # Customize the plot
             ax.set_xlabel('Time', fontsize=12)
             ax.set_ylabel(f'Spread pair {pair}', fontsize=12)
@@ -111,6 +116,7 @@ class Data_Visualization():
             plt.tight_layout()
 
             # Show the plot
+            plt.legend()
             plt.show()
 
 
