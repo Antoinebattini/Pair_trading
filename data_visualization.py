@@ -1,5 +1,8 @@
 import seaborn as sns 
 import matplotlib.pyplot as plt 
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import numpy as np 
 
 class Data_Visualization():
 
@@ -66,12 +69,94 @@ class Data_Visualization():
         plt.legend()
         plt.show()
 
-    def Entry_trading_points(self,data,pair,h):
-            df_test = data
-            marker_map = {'green': '^', 'red': 'v'}
-            color_map = {'green': 'green', 'red': 'red'}
-            fig, ax = plt.subplots(figsize=(12, 6))
+    def Entry_trading_points(self,data):
+            df_test = data.copy()
+            fig = go.Figure()
+            buttons = []
+            visibility=[]
 
+            i = 0
+            for pair,dataframe in df_test.items():
+                
+                 # Add the Delta_norm plot of the pair 'pair'
+                up_signals =dataframe[dataframe['trading_signals_buy'] == 1]
+                down_signal = dataframe[dataframe['trading_signals_buy'] == -1]
+
+                fig.add_trace(go.Scatter(
+                    x=dataframe.index, 
+                    y=dataframe.Delta_norm, 
+                    mode='lines', 
+                    name=str(pair),
+                    visible=False))
+                visibility.append(False)
+                fig.add_trace(go.Scatter(
+                    x=up_signals.index, 
+                    y=up_signals['Delta_norm'], 
+                    mode='markers', 
+                    name = f'Buy signal for {str(pair)}',
+                    marker=dict(size=10, symbol='triangle-up', color='green'),
+                    visible=False
+                ))
+                visibility.append(False)
+                fig.add_trace(go.Scatter(
+                    x=down_signal.index, 
+                    y=down_signal['Delta_norm'], 
+                    mode='markers', 
+                    name = f'Sell_signal for {str(pair)}',
+                    marker=dict(size=10, symbol='triangle-down', color='red'),
+                    visible=False
+                ))
+                visibility.append(False)
+                
+
+                # Add a button for this pair
+                button_visibility = [False]*3*len(df_test)
+                button_visibility[i * 3] = True  
+                button_visibility[i * 3 + 1] = True  
+                button_visibility[i * 3 + 2] = True 
+                i+=1
+                buttons.append({"label": str(pair),"method": "update","args": [{"visible": button_visibility}]}) 
+                # Add a "Show All" button
+            buttons.append({
+                    "label": "Show All",
+                    "method": "update",
+                    "args": [{"visible": [True] * len(visibility)}]
+                })
+
+                # Add a "Hide All" button
+            buttons.append({
+                    "label": "Hide All",
+                    "method": "update",
+                    "args": [{"visible": [False] * len(visibility)}]
+                })
+                
+        # Update layout for better visualization
+            fig.update_layout(
+            updatemenus=[
+                {
+                    "buttons":buttons,
+                    "direction": "down",
+                    "showactive": True,
+                    "x": 0.5,
+                    "y": 1.15,
+                    "xanchor": "left",
+                    "yanchor": "middle"
+                }
+            ]
+            )
+
+        # Add layout properties
+            fig.update_layout(
+                title="Spread and Trading Signals",
+                xaxis_title="Date",
+                yaxis_title="Delta_norm",
+                hovermode="x unified"
+        )
+
+        # Show plot
+            fig.show()
+            
+            """
             # Plot X_i vs time as a line
             ax.plot(df_test.index, df_test[pair], label='X_i Value', color='blue', linewidth=2)
 
@@ -111,7 +196,7 @@ class Data_Visualization():
             plt.tight_layout()
 
             # Show the plot
-            plt.show()
+            plt.show()"""
 
 
     def function_test():
