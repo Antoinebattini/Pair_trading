@@ -3,6 +3,14 @@ import pandas as pd
 
 
 class Pair_Selection:
+    
+    @staticmethod 
+    def spread_time_series(x:list,y:list):
+        model =sm.OLS(x,y)
+        results = model.fit()
+        #print(results.params)
+        beta = results.params[0]
+        return x - beta*y
 
     
     def __init__(self,data,number_of_pair,stock_list_sector,sector_list,sector_neutral):
@@ -24,6 +32,27 @@ class Pair_Selection:
         
         distances_df = pd.DataFrame(distances, columns=data.columns, index=data.columns)
         return distances_df
+    
+    def compute_correlation(self):
+        data = self.data
+        data_1 = data.corr()
+        return data_1 
+    
+    def augmented_dickey_fuller_selection(self,x:list,y:list,p =0.01):
+        spread = Pair_Selection.spread_time_series(x,y)
+        #print(spread)
+        p_value = adfuller(spread,regression ='ct')[1]
+        if p_value < p: 
+            return True
+        else:
+            return False
+
+
+    def paire_selection_2(self,pairs,p):
+        selected_pairs = [pair*(Pair_Selection.augmented_dickey_fuller_selection(self,np.array(self.data[pair[0]]),np.array(self.data[pair[1]]),p=p)) for pair in pairs ]
+        selected_pairs = [i  for i in selected_pairs if i!=()]
+
+        return selected_pairs
     
     def paire_selection(self,distances,number_of_pair, stock_list_sector, sector_list,pairs):
         selected_pairs ={} 
