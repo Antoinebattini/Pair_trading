@@ -3,6 +3,14 @@ import pandas as pd
 
 
 class Pair_Selection:
+    
+    @staticmethod 
+    def spread_time_series(x:list,y:list):
+        model =sm.OLS(x,y)
+        results = model.fit()
+        #print(results.params)
+        beta = results.params[0]
+        return x - beta*y
 
     
     def __init__(self,data,number_of_pair,stock_list_sector,sector_list,sector_neutral):
