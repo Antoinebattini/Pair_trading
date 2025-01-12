@@ -13,9 +13,7 @@ class Pair_Selection:
         return x - beta*y
 
     def compute_correlation(data):
-        df = data.copy()
-        data_1 = df.corr()
-        return data_1 
+        return data.corr()
     
     def __init__(self,data,number_of_pair,stock_list_sector,sector_list,sector_neutral):
         self.data = data
@@ -37,18 +35,16 @@ class Pair_Selection:
         distances_df = pd.DataFrame(distances, columns=data.columns, index=data.columns)
         return distances_df
     
-    def compute_correlation(self):
-        data = self.data
-        data_1 = data.corr()
-        return data_1 
+  
     
     def metrics(self,name):
+        data = Pair_Selection.compute_correlation(self.data)
         if name=='angular_distance':
-            return np.sqrt((1/2)*(1 - Pair_Selection.compute_correlation(self.data)))
+            return np.sqrt((1/2)*(1 - data))
         elif name == 'absolute_angular_distance':
-            return np.sqrt(1 - np.abs(Pair_Selection.compute_correlation(self.data)))
+            return np.sqrt(1 - np.abs(data))
         elif name == 'squared_angular_distance':
-            return np.sqrt(1 - Pair_Selection.compute_correlation(self.data)**2)
+            return np.sqrt(1 - data**2)
     
   
     
