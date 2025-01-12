@@ -38,6 +38,15 @@ class Pair_Selection:
         data_1 = data.corr()
         return data_1 
     
+    def metrics(self,name):
+        if name=='angular_distance':
+            return np.sqrt((1/2)*(1 - Pair_Selection.compute_correlation()))
+        elif name == 'absolute_angular_distance':
+            return np.sqrt(1 - np.abs(Pair_Selection.compute_correlation()))
+        elif name == 'squared_angular_distance':
+            return np.sqrt(1 - Pair_Selection.compute_correlation()**2)
+    
+    
     def augmented_dickey_fuller_selection(self,x:list,y:list,p =0.01):
         spread = Pair_Selection.spread_time_series(x,y)
         #print(spread)
