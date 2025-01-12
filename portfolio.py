@@ -47,6 +47,8 @@ class Signaux():
         self.data['In'] = (self.data['Signal_up'] > self.data['Signal_up'].shift(1)) *1
         self.data['Out'] = (self.data['Signal_up'] < self.data['Signal_up'].shift(1)) * -1
         self.data['Trading_points']= self.data['Out'] + self.data['In']
+        self.data.drop(['Signal', 'Signal_up', 'In', 'Out',
+       'above_threshold', 'above_mean', 'GAT', 'GUM'], axis = 1, inplace = True)
 
         return self.data['Trading_points'] 
 
@@ -68,11 +70,13 @@ class Signaux():
         self.data['In'] = (self.data['Signal_up'] < self.data['Signal_up'].shift(1)) *1
         self.data['Out'] = (self.data['Signal_up'] > self.data['Signal_up'].shift(1)) * -1
         self.data['Trading_points']= self.data['Out'] + self.data['In']
-
+        self.data.drop(['under_threshold', 'under_mean', 'GUT',
+       'GAM', 'Signal', 'Signal_up', 'In', 'Out'], axis = 1, inplace = True)
         return self.data['Trading_points'] 
 
 
     def trading_signals(self,colone):
+    
         return Signaux.trading_signals_sell(self,colone) + Signaux.trading_signals_buy(self,colone)
 
 
