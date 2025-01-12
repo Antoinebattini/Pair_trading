@@ -1,5 +1,8 @@
 import seaborn as sns 
 import matplotlib.pyplot as plt 
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import numpy as np 
 
 class Data_Visualization():
 
@@ -27,7 +30,7 @@ class Data_Visualization():
         plt.show()
 
 
-    def pair_historic(self,data ):
+    def pair_historic(self,data,key):
         plt.figure(figsize=(15, 20))
         x = data[key].index
         y1 = data[key][key[0]]
@@ -55,6 +58,147 @@ class Data_Visualization():
         # Show the plot
         plt.title(f"Plot for the pair ({key[0]},{key[1]})")
         plt.show()
+
+
+    def portfolio_units(self,data,key):
+        plt.figure(figsize=(20,5))
+        plt.plot(data[key].index, data[key], 'orange', label = 'units to hold')
+        plt.title("Portfolio units to hold")
+        plt.xlabel("Date")
+        plt.ylabel("Portfolio holdings")
+        plt.legend()
+        plt.show()
+
+    def Entry_trading_points(self,data):
+            df_test = data.copy()
+            fig = go.Figure()
+            buttons = []
+            visibility=[]
+
+            i = 0
+            for pair,dataframe in df_test.items():
+                
+                 # Add the Delta_norm plot of the pair 'pair'
+                up_signals =dataframe[dataframe['trading_signals'] == 1]
+                down_signal = dataframe[dataframe['trading_signals'] == -1]
+
+                fig.add_trace(go.Scatter(
+                    x=dataframe.index, 
+                    y=dataframe.Delta_norm, 
+                    mode='lines', 
+                    name=str(pair),
+                    visible=False))
+                visibility.append(False)
+                fig.add_trace(go.Scatter(
+                    x=up_signals.index, 
+                    y=up_signals['Delta_norm'], 
+                    mode='markers', 
+                    name = f'Buy signal for {str(pair)}',
+                    marker=dict(size=10, symbol='triangle-up', color='green'),
+                    visible=False
+                ))
+                visibility.append(False)
+                fig.add_trace(go.Scatter(
+                    x=down_signal.index, 
+                    y=down_signal['Delta_norm'], 
+                    mode='markers', 
+                    name = f'Sell_signal for {str(pair)}',
+                    marker=dict(size=10, symbol='triangle-down', color='red'),
+                    visible=False
+                ))
+                visibility.append(False)
+                
+
+                # Add a button for this pair
+                button_visibility = [False]*3*len(df_test)
+                button_visibility[i * 3] = True  
+                button_visibility[i * 3 + 1] = True  
+                button_visibility[i * 3 + 2] = True 
+                i+=1
+                buttons.append({"label": str(pair),"method": "update","args": [{"visible": button_visibility}]}) 
+                # Add a "Show All" button
+            buttons.append({
+                    "label": "Show All",
+                    "method": "update",
+                    "args": [{"visible": [True] * len(visibility)}]
+                })
+
+                # Add a "Hide All" button
+            buttons.append({
+                    "label": "Hide All",
+                    "method": "update",
+                    "args": [{"visible": [False] * len(visibility)}]
+                })
+                
+        # Update layout for better visualization
+            fig.update_layout(
+            updatemenus=[
+                {
+                    "buttons":buttons,
+                    "direction": "down",
+                    "showactive": True,
+                    "x": 0.5,
+                    "y": 1.15,
+                    "xanchor": "right",
+                    "yanchor": "top"
+                }
+            ]
+            )
+
+        # Add layout properties
+            fig.update_layout(
+                title="Spread and Trading Signals",
+                
+                xaxis_title="Date",
+                yaxis_title="Delta_norm",
+                hovermode="x unified"
+        )
+
+        # Show plot
+            fig.show()
+            
+            """
+            # Plot X_i vs time as a line
+            ax.plot(df_test.index, df_test[pair], label='X_i Value', color='blue', linewidth=2)
+
+            # Plot upward triangles for 'green'
+            green_points = df_test[df_test[h] == 1]
+            ax.scatter(
+                green_points.index,
+                green_points[pair],
+                marker=marker_map['green'],
+                color=color_map['green'],
+                s=100,  # Marker size
+                label='Green Marker'
+            )
+
+            # Plot downward triangles for 'red'
+            red_points = df_test[df_test[h]== -1]
+            ax.scatter(
+                red_points.index,
+                red_points[pair],
+                marker=marker_map['red'],
+                color=color_map['red'],
+                s=100,  # Marker size
+                label='Red Marker'
+            )
+
+            # Customize the plot
+            ax.set_xlabel('Time', fontsize=12)
+            ax.set_ylabel(f'Spread pair {pair}', fontsize=12)
+            ax.set_title(f'Trading entry points for the pair {pair}', fontsize=14)
+            ax.legend()
+            ax.grid(True)
+
+            # Rotate x-axis labels for better readability
+            plt.xticks(rotation=45)
+
+            # Tight layout for better spacing
+            plt.tight_layout()
+
+            # Show the plot
+            plt.show()"""
+
 
     def function_test():
         print(test)
