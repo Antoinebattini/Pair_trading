@@ -30,8 +30,74 @@ class Data_Visualization():
         plt.show()
 
 
-    def pair_historic(self,data,key):
-        plt.figure(figsize=(15, 20))
+    def pair_historic(self,data):
+        df = data.copy()
+        fig = go.Figure()
+        buttons = []
+        visibility=[]
+        i = 0 
+        for pair,dataframe in df.items():
+            fig.add_trace(go.Scatter(
+                    x=dataframe.index, 
+                    y=dataframe[str(pair[0])], 
+                    mode='lines', 
+                    name=str(pair),
+                    visible=False))
+            visibility.append(False)
+            fig.add_trace(go.Scatter(
+                    x=dataframe.index, 
+                    y=dataframe[str(pair[1])], 
+                    mode='lines', 
+                    name=str(pair),
+                    visible=False))
+            visibility.append(False)
+
+            button_visibility = [False]*2*len(df)
+            button_visibility[i * 2] = True  
+            button_visibility[i * 2 + 1] = True 
+            i+=1
+            buttons.append({"label": str(pair),"method": "update","args": [{"visible": button_visibility}]}) 
+        buttons.append({
+                "label": "Show All",
+                "method": "update",
+                "args": [{"visible": [True] * len(visibility)}]
+            })
+
+            # Add a "Hide All" button
+        buttons.append({
+                "label": "Hide All",
+                "method": "update",
+                "args": [{"visible": [False] * len(visibility)}]
+            })
+        # Update layout for better visualization
+        fig.update_layout(
+            updatemenus=[
+                {
+                    "buttons":buttons,
+                    "direction": "down",
+                    "showactive": True,
+                    "x": 0.5,
+                    "y": 1.15,
+                    "xanchor": "right",
+                    "yanchor": "top"
+                }
+            ]
+            )
+
+        # Add layout properties
+        fig.update_layout(
+                title='normalized prices',
+                
+                xaxis_title="Date",
+                yaxis_title="Normalized Prices",
+                hovermode="x unified"
+        )
+
+        # Show plot
+        fig.show()
+            
+
+        """plt.figure(figsize=(15, 20))
         x = data[key].index
         y1 = data[key][key[0]]
         y2 = data[key][key[1]]
@@ -57,7 +123,7 @@ class Data_Visualization():
 
         # Show the plot
         plt.title(f"Plot for the pair ({key[0]},{key[1]})")
-        plt.show()
+        plt.show()"""
 
 
     def portfolio_units(self,data,key):
