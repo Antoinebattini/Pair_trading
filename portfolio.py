@@ -9,7 +9,7 @@ class Signaux():
 
 
     def entry_points(self):
-        df = self.self.data.copy()
+        df = self.data.copy()
         mean = df.mean(axis=0)
         std = df.std(axis =0)
         df = ((df< mean - self.threshold *std) ^( df> mean + self.threshold*std ))*1
@@ -31,13 +31,12 @@ class Signaux():
         
 
     def trading_signals_buy(self,colone):
-
         mean = self.data[colone].mean()
         std = self.data[colone].std()
         self.data['above_threshold'] = 0
         self.data['above_mean'] = 0
-        self.data ['GAT'] = 0  #'GAT' stand for go above the threshold 
-        self.data ['GUM'] = 0 
+        self.data['GAT'] = 0  #'GAT' stand for go above the threshold 
+        self.data['GUM'] = 0 
         self.data.loc[ (self.data[colone] > mean +std), 'above_threshold' ] = 1
         self.data.loc[ (self.data[colone] > mean), 'above_mean' ] = 1
         self.data.loc[ ( self.data['above_threshold'] - self.data['above_threshold'].shift(1)) >0, 'GAT'] = 1
@@ -47,8 +46,7 @@ class Signaux():
         self.data['Signal_up'] = [(acc := max(min(acc + x, 1),0)) for x in self.data['Signal']]
         self.data['In'] = (self.data['Signal_up'] > self.data['Signal_up'].shift(1)) *1
         self.data['Out'] = (self.data['Signal_up'] < self.data['Signal_up'].shift(1)) * -1
-        self.data ['Trading_points']= self.data['Out'] + self.data['In']
-        self.data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
+        self.data['Trading_points']= self.data['Out'] + self.data['In']
 
         return self.data['Trading_points'] 
 
@@ -69,13 +67,13 @@ class Signaux():
         self.data['Signal_up'] = [(acc := max(min(acc + x, 1),0)) for x in self.data['Signal']]
         self.data['In'] = (self.data['Signal_up'] < self.data['Signal_up'].shift(1)) *1
         self.data['Out'] = (self.data['Signal_up'] > self.data['Signal_up'].shift(1)) * -1
-        self.data ['Trading_points']= self.data['Out'] + self.data['In']
-        self.data.drop(['above_threshold','above_mean','GAT','GUM','Signal','In','Out','Signal_up'], axis = 1, inplace = True)
+        self.data['Trading_points']= self.data['Out'] + self.data['In']
 
         return self.data['Trading_points'] 
 
 
-
+    def trading_signals(self,colone):
+        return Signaux.trading_signals_sell(self,colone) + Signaux.trading_signals_buy(self,colone)
 
 
 

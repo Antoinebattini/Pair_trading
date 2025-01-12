@@ -79,8 +79,8 @@ class Data_Visualization():
             for pair,dataframe in df_test.items():
                 
                  # Add the Delta_norm plot of the pair 'pair'
-                up_signals =dataframe[dataframe['trading_signals_buy'] == 1]
-                down_signal = dataframe[dataframe['trading_signals_buy'] == -1]
+                up_signals =dataframe[dataframe['trading_signals'] == 1]
+                down_signal = dataframe[dataframe['trading_signals'] == -1]
 
                 fig.add_trace(go.Scatter(
                     x=dataframe.index, 
@@ -139,8 +139,8 @@ class Data_Visualization():
                     "showactive": True,
                     "x": 0.5,
                     "y": 1.15,
-                    "xanchor": "left",
-                    "yanchor": "middle"
+                    "xanchor": "right",
+                    "yanchor": "top"
                 }
             ]
             )
@@ -148,6 +148,7 @@ class Data_Visualization():
         # Add layout properties
             fig.update_layout(
                 title="Spread and Trading Signals",
+                
                 xaxis_title="Date",
                 yaxis_title="Delta_norm",
                 hovermode="x unified"
