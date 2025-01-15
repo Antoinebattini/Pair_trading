@@ -12,6 +12,8 @@ class Pair_Selection:
         beta = results.params[0]
         return x - beta*y
 
+    def compute_correlation(data):
+        return data.corr()
     
     def __init__(self,data,number_of_pair,stock_list_sector,sector_list,sector_neutral):
         self.data = data
@@ -33,10 +35,19 @@ class Pair_Selection:
         distances_df = pd.DataFrame(distances, columns=data.columns, index=data.columns)
         return distances_df
     
-    def compute_correlation(self):
-        data = self.data
-        data_1 = data.corr()
-        return data_1 
+  
+    
+    def metrics(self,name):
+        data = Pair_Selection.compute_correlation(self.data)
+        if name=='angular_distance':
+            return np.sqrt((1/2)*(1 - data))
+        elif name == 'absolute_angular_distance':
+            return np.sqrt(1 - np.abs(data))
+        elif name == 'squared_angular_distance':
+            return np.sqrt(1 - data**2)
+    
+  
+    
     
     def augmented_dickey_fuller_selection(self,x:list,y:list,p =0.01):
         spread = Pair_Selection.spread_time_series(x,y)
