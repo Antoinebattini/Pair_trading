@@ -71,9 +71,13 @@ To achieve our objectives, we will:
 Identifying which pairs to trade is a crucial step in pair trading. We will focus on:
 
 1. **Correlation Analysis**  
-   - Measure historical correlation (Pearson, Spearman) to find statistically related assets.  
-   - Filter out pairs with low or extremely high correlation.
-
+   When identifying promising pairs to trade, one effective approach is to measure how “close” two assets are in terms of their historical price or return series. Below, we outline two specific distance-based methods that we apply in our workflow:
+   1. ***Euclidian distance***
+      The Euclidean distance method treats each asset’s price (or return) history as a point in a multi-dimensional space.
+      Normalization: Before calculating distances, we typically normalize or standardize each time series to ensure differences in scale (e.g., different price ranges) do not bias the results.This straightforward metric captures absolute differences between two time series, making it a useful baseline for pair identification.
+   2. ***Correlation-Based distance***
+      While Euclidean distance focuses on absolute dissimilarities, correlation-based distances emphasize the direction and pattern of movement. Two popular forms include angular distance and declination distance, which transform correlations into a distance metric:Angular Distance and its declinaison.
+      To enhance reliability, we apply Random Matrix Theory (RMT) denoising as discussed in the works of Marcos López de Prado. RMT helps filter out spurious correlations by removing random noise from the correlation matrix, leaving a more robust structure for measuring true asset relationships. After denoising, the correlation-based distance calculation is more stable and less prone to overfitting or short-lived market anomalies.
 2. **Cointegration Tests**  
    - Apply Engle-Granger and Johansen tests to confirm the presence of a stable long-term relationship.  
    - Select pairs that exhibit mean reversion potential, a key aspect of pair trading.
