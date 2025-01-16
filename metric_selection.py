@@ -1,12 +1,20 @@
 import numpy as np 
 import pandas as pd 
-
+import statsmodels.api as sm 
+from statsmodels.tsa.stattools import adfuller
 
 class Pair_Selection:
     
     @staticmethod 
     def spread_time_series(x:list,y:list):
-        model =sm.OLS(x,y)
+        x_series = pd.Series(x)
+        y_series = pd.Series(y)
+        x_series.bfill(inplace=True)
+        y_series.bfill(inplace=True)
+        x_clean = x_series.values
+        y_clean = y_series.values
+        
+        model =sm.OLS(x_clean,y_clean)
         results = model.fit()
         #print(results.params)
         beta = results.params[0]
