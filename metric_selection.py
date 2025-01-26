@@ -1,5 +1,7 @@
 import numpy as np 
 import pandas as pd 
+from sklearn.neighbors._kde import KernelDensity
+
 
 
 class Pair_Selection:
@@ -97,4 +99,28 @@ class Pair_Selection:
         return selected_pairs
 
 
+class CorrMatrix(): 
+
+    def mpPDF(var,q,pts):
+        e_min,e_max = var* (1 -(1/q)**.5),var* (1 + (1/q)**.5)
+        eVal = np.linspace(e_min,e_max,pts)
+        pdf = q/ (2*np.pi*var*eVal)*((e_max - eVal)*(eVal - e_min))**.5
+        pdf = pd.Series(pdf,index = eVal)
+        return pdf
+
+    def getPCA(matrix):
+        eVal,eVec = np.linalg.eigh(matrix)
+        indices = eVal.argsort()[::-1]
+        eVal,eVec = eVal[indices],eVec[:,indices]
+        eVal = np.diagflat(eVal)
+        return eVal,eVec
+
+    def fitKDE(obs,bWidth =.25,kernel = 'gaussian', x=None):
+        if len(obs.shape)==1: obs =obs.reshape(-1,1)
+        kde = KernelDensity(bandwidth=bWidth,kernel=kernel).fit(obs)
+        if x is None : x=np.unique(obs).reshape(-1,1)
+        if len(x.shape)==1 : x=x.reshape(-1,1)
+        logProb = kde.score_samples(x)
+        pdf = pd.Series(np.exp(logProb), index = x.flatten())
+        return pdf
 
