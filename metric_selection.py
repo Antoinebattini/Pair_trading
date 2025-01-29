@@ -55,10 +55,9 @@ class Pair_Selection:
     def augmented_dickey_fuller_selection(self,x:list,y:list,p =0.01):
         try:
             spread = Pair_Selection.spread_time_series(x,y)
-            p_value = adfuller(spread,p=p)
+            p_value = adfuller(spread,regression ='ct')[1]
         except:
             pass
-        print(spread)
         if p_value < p: 
             return True
         else:
