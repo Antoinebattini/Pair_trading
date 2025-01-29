@@ -1,14 +1,15 @@
 import numpy as np 
 import pandas as pd 
 from sklearn.neighbors._kde import KernelDensity
+from statsmodels import regression as r
 
-
+from statsmodels.tsa.stattools import adfuller
 
 class Pair_Selection:
     
     @staticmethod 
     def spread_time_series(x:list,y:list):
-        model =sm.OLS(x,y)
+        model =r.linear_model.OLS(x,y)
         results = model.fit()
         #print(results.params)
         beta = results.params[0]
@@ -52,9 +53,12 @@ class Pair_Selection:
     
     
     def augmented_dickey_fuller_selection(self,x:list,y:list,p =0.01):
-        spread = Pair_Selection.spread_time_series(x,y)
-        #print(spread)
-        p_value = adfuller(spread,regression ='ct')[1]
+        try:
+            spread = Pair_Selection.spread_time_series(x,y)
+            p_value = adfuller(spread,p=p)
+        except:
+            pass
+        print(spread)
         if p_value < p: 
             return True
         else:
