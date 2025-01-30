@@ -57,6 +57,7 @@ class Pair_Selection:
             spread = Pair_Selection.spread_time_series(x,y)
             p_value = adfuller(spread,regression ='ct')[1]
         except:
+            p_value =1
             pass
         if p_value < p: 
             return True
