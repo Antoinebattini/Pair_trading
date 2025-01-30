@@ -126,15 +126,6 @@ class Data_Visualization():
         plt.show()"""
 
 
-    def portfolio_units(self,data,key):
-        plt.figure(figsize=(20,5))
-        plt.plot(data[key].index, data[key], 'orange', label = 'units to hold')
-        plt.title("Portfolio units to hold")
-        plt.xlabel("Date")
-        plt.ylabel("Portfolio holdings")
-        plt.legend()
-        plt.show()
-
     def Entry_trading_points(self,data):
             df_test = data.copy()
             fig = go.Figure()
@@ -268,3 +259,121 @@ class Data_Visualization():
 
     def function_test():
         print(test)
+        
+    def portfolio_units(self,data):
+        df = data.copy()
+        fig = go.Figure()
+        buttons = []
+        visibility=[]
+        i = 0 
+        for pair,dataframe in df.items():
+            fig.add_trace(go.Scatter(
+                    x=dataframe.index, 
+                    y=dataframe['portfolio_units'], 
+                    mode='lines', 
+                    name='Portfolio units to hold for' + str(pair),
+                    visible=False))
+            visibility.append(False)
+            button_visibility = [False]*len(df)
+            button_visibility[i] = True  
+            button_visibility[i] = True 
+            i+=1
+            buttons.append({"label": str(pair),"method": "update","args": [{"visible": button_visibility}]}) 
+        buttons.append({
+                "label": "Show All",
+                "method": "update",
+                "args": [{"visible": [True] * len(visibility)}]
+            })
+        
+            # Add a "Hide All" button
+        buttons.append({
+                "label": "Hide All",
+                "method": "update",
+                "args": [{"visible": [False] * len(visibility)}]
+            })
+        # Update layout for better visualization
+        fig.update_layout(
+            updatemenus=[
+                {
+                    "buttons":buttons,
+                    "direction": "down",
+                    "showactive": True,
+                    "x": 0.5,
+                    "y": 1.15,
+                    "xanchor": "right",
+                    "yanchor": "top"
+                }
+            ]
+            )
+
+        # Add layout properties
+        fig.update_layout(
+                title='Portfolio units',
+                
+                xaxis_title="Date",
+                yaxis_title="Portfolio units to hold for the Pair",
+                hovermode="x unified"
+        )
+
+        # Show plot
+        fig.show()
+            
+
+    def spread_plot(self,data):
+        df = data.copy()
+        fig = go.Figure()
+        buttons = []
+        visibility=[]
+        i = 0 
+        for pair,dataframe in df.items():
+            fig.add_trace(go.Scatter(
+                    x=dataframe.index, 
+                    y=dataframe['Delta_norm'], 
+                    mode='lines', 
+                    name='Spread for pair' + str(pair),
+                    visible=False))
+            visibility.append(False)
+            button_visibility = [False]*len(df)
+            button_visibility[i] = True  
+            button_visibility[i] = True 
+            i+=1
+            buttons.append({"label": str(pair),"method": "update","args": [{"visible": button_visibility}]}) 
+        buttons.append({
+                "label": "Show All",
+                "method": "update",
+                "args": [{"visible": [True] * len(visibility)}]
+            })
+        
+            # Add a "Hide All" button
+        buttons.append({
+                "label": "Hide All",
+                "method": "update",
+                "args": [{"visible": [False] * len(visibility)}]
+            })
+        # Update layout for better visualization
+        fig.update_layout(
+            updatemenus=[
+                {
+                    "buttons":buttons,
+                    "direction": "down",
+                    "showactive": True,
+                    "x": 0.5,
+                    "y": 1.15,
+                    "xanchor": "right",
+                    "yanchor": "top"
+                }
+            ]
+            )
+
+        # Add layout properties
+        fig.update_layout(
+                title='Spread',
+                
+                xaxis_title="Date",
+                yaxis_title="Spread for the Pair",
+                hovermode="x unified"
+        )
+
+        # Show plot
+        fig.show()
+            
