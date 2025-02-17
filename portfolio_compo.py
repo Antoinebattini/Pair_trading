@@ -1,4 +1,5 @@
 import numpy as np
+import statsmodels.api as sm
 
 class portfolio():
     def __init__(self, data, data_raw, capital, sl_threshold):
@@ -22,7 +23,7 @@ class portfolio():
             self.portfolio[key]['dollar_ratio'] = self.portfolio[key]['dollar_ratio'].ffill()
             self.portfolio[key]['Capital'] = self.capital/len(self.data_raw) + np.cumsum(self.portfolio[key]['trading_signals']*(-self.portfolio[key][key[0]]+self.portfolio[key]['dollar_ratio']*self.portfolio[key][key[1]]))
             self.portfolio[key]['portfolio'] = self.portfolio[key]['portfolio_units']*(self.portfolio[key][key[0]]-self.portfolio[key]['dollar_ratio']*self.portfolio[key][key[1]])
-            self.portfolio[key]['spread_mean'] = self.portfolio[key]['Delta_norm'].rolling(window=window).mean()
+            '''self.portfolio[key]['spread_mean'] = self.portfolio[key]['Delta_norm'].rolling(window=window).mean()
             self.portfolio[key]['spread_std'] = self.portfolio[key]['Delta_norm'].rolling(window=window).std()
             self.portfolio[key]['upper_stop'] = self.portfolio[key]['spread_mean'] + self.stop_loss_threshold * self.portfolio[key]['spread_std']
             self.portfolio[key]['lower_stop'] = self.portfolio[key]['spread_mean'] - self.stop_loss_threshold * self.portfolio[key]['spread_std']
@@ -35,7 +36,7 @@ class portfolio():
                     for j in range(i+1,len(self.portfolio[key]['stop_loss'])):
                         if self.portfolio[key].iloc[j]['trading_signals']!=0 :
                             self.portfolio[key].iloc[i]['trading_signals'] = self.portfolio[key].iloc[j]['trading_signals']
-                            self.portfolio[key].iloc[j]['trading_signals'] = 0
+                            self.portfolio[key].iloc[j]['trading_signals'] = 0'''
             self.portfolio[key] = self.portfolio[key].drop(['open_if_odd'],axis=1)
             
         return self.portfolio
@@ -58,6 +59,7 @@ class portfolio():
                         if self.portfolio[key].iloc[j]['trading_signals']!=0 :
                             self.portfolio[key].iloc[i]['trading_signals'] = self.portfolio[key].iloc[j]['trading_signals']
                             self.portfolio[key].iloc[j]['trading_signals'] = 0
+                            break 
             self.portfolio[key] = self.portfolio[key].drop(['spread_mean','spread_std','upper_stop','lower_stop'],axis=1)
             
         return self.portfolio
@@ -69,6 +71,7 @@ class portfolio():
         in discrete time, we will approximate it by an AR(1) process. We have dx_t = (phi-1)*x_t-1 + (1-phi)*mu + epsilon_t. Let 
         alpha = (1-phi)*mu and beta = (phi-1), we obtain a linear equation for which we solve for the parameters with OLS. Then
         phi = beta - 1 and theta (speed of mean reversion) = -ln(phi) and finally T (half life) = ln(2)/theta.'''
+        '''Need to verify that half_life is a number of days'''
         
         for key,value in self.portfolio.items():
             spread_lag = self.portfolio[key]['Delta_norm'].shift(1)
@@ -88,5 +91,20 @@ class portfolio():
             half_life = np.log(2) / theta_est
             
             self.portfolio[key]['half_life'] = half_life
+            
+            self.portfolio[key]['open_if_odd'] = np.cumsum(np.abs(self.portfolio[key]['trading_signals']))
+            self.portfolio[key]['open'] = np.where((self.portfolio[key]['open_if_odd']%2 == 1) & (self.portfolio[key]['trading_signals'] != 0),self.portfolio[key]['open_if_odd'],0)
+            cond_A = self.portfolio[key]['open'] != 0
+            cond_B = self.portfolio[key]['open_if_odd'] == self.portfolio[key]['open_if_odd'].shift(-half_life)
+            mask = cond_A & cond_B
+            self.portfolio[key].loc[mask, 'time_stop'] = -self.portfolio[key]['portfolio_units']
+            for i in range(len(self.portfolio[key]['time_stop'])):
+                if self.portfolio[key].iloc[i]['time_stop']!=0 :
+                    for j in range(i+1,len(self.portfolio[key]['time_stop'])):
+                        if self.portfolio[key].iloc[j]['trading_signals']!=0 :
+                            self.portfolio[key].iloc[i]['trading_signals'] = self.portfolio[key].iloc[j]['trading_signals']
+                            self.portfolio[key].iloc[j]['trading_signals'] = 0
+                            break 
+            self.portfolio[key] = self.portfolio[key].drop(['open_if_odd','open'],axis=1)
         
         return self.portfolio
