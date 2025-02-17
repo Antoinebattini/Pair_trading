@@ -23,6 +23,9 @@ class portfolio():
             self.portfolio[key]['dollar_ratio'] = self.portfolio[key]['dollar_ratio'].ffill()
             self.portfolio[key]['Capital'] = self.capital/len(self.data_raw) + np.cumsum(self.portfolio[key]['trading_signals']*(-self.portfolio[key][key[0]]+self.portfolio[key]['dollar_ratio']*self.portfolio[key][key[1]]))
             self.portfolio[key]['portfolio'] = self.portfolio[key]['portfolio_units']*(self.portfolio[key][key[0]]-self.portfolio[key]['dollar_ratio']*self.portfolio[key][key[1]])
+            if (self.portfolio[key]['Capital'] <= 0).any():
+                del self.portfolio[key]
+            
             '''self.portfolio[key]['spread_mean'] = self.portfolio[key]['Delta_norm'].rolling(window=window).mean()
             self.portfolio[key]['spread_std'] = self.portfolio[key]['Delta_norm'].rolling(window=window).std()
             self.portfolio[key]['upper_stop'] = self.portfolio[key]['spread_mean'] + self.stop_loss_threshold * self.portfolio[key]['spread_std']
@@ -60,6 +63,8 @@ class portfolio():
                             self.portfolio[key].iloc[i]['trading_signals'] = self.portfolio[key].iloc[j]['trading_signals']
                             self.portfolio[key].iloc[j]['trading_signals'] = 0
                             break 
+            if (self.portfolio[key]['Capital'] <= 0).any():
+                del self.portfolio[key]
             self.portfolio[key] = self.portfolio[key].drop(['spread_mean','spread_std','upper_stop','lower_stop'],axis=1)
             
         return self.portfolio
@@ -105,6 +110,9 @@ class portfolio():
                             self.portfolio[key].iloc[i]['trading_signals'] = self.portfolio[key].iloc[j]['trading_signals']
                             self.portfolio[key].iloc[j]['trading_signals'] = 0
                             break 
+                        
+            if (self.portfolio[key]['Capital'] <= 0).any():
+                del self.portfolio[key]
             self.portfolio[key] = self.portfolio[key].drop(['open_if_odd','open'],axis=1)
         
         return self.portfolio
