@@ -1,14 +1,20 @@
 import numpy as np 
 import pandas as pd 
+<<<<<<< HEAD
 import statsmodels.api as sm
 from statsmodels.tsa.stattools import adfuller
+=======
+from sklearn.neighbors._kde import KernelDensity
+from statsmodels import regression as r
+>>>>>>> d51cf5fb7d189595fae5b3e45eeceeebb875c665
 
+from statsmodels.tsa.stattools import adfuller
 
 class Pair_Selection:
     
     @staticmethod 
     def spread_time_series(x:list,y:list):
-        model =sm.OLS(x,y)
+        model =r.linear_model.OLS(x,y)
         results = model.fit()
         #print(results.params)
         beta = results.params[0]
@@ -52,9 +58,12 @@ class Pair_Selection:
     
     
     def augmented_dickey_fuller_selection(self,x:list,y:list,p =0.01):
-        spread = Pair_Selection.spread_time_series(x,y)
-        #print(spread)
-        p_value = adfuller(spread,regression ='ct')[1]
+        try:
+            spread = Pair_Selection.spread_time_series(x,y)
+            p_value = adfuller(spread,regression ='ct')[1]
+        except:
+            p_value =1
+            pass
         if p_value < p: 
             return True
         else:
@@ -99,4 +108,28 @@ class Pair_Selection:
         return selected_pairs
 
 
+class CorrMatrix(): 
+
+    def mpPDF(var,q,pts):
+        e_min,e_max = var* (1 -(1/q)**.5),var* (1 + (1/q)**.5)
+        eVal = np.linspace(e_min,e_max,pts)
+        pdf = q/ (2*np.pi*var*eVal)*((e_max - eVal)*(eVal - e_min))**.5
+        pdf = pd.Series(pdf,index = eVal)
+        return pdf
+
+    def getPCA(matrix):
+        eVal,eVec = np.linalg.eigh(matrix)
+        indices = eVal.argsort()[::-1]
+        eVal,eVec = eVal[indices],eVec[:,indices]
+        eVal = np.diagflat(eVal)
+        return eVal,eVec
+
+    def fitKDE(obs,bWidth =.25,kernel = 'gaussian', x=None):
+        if len(obs.shape)==1: obs =obs.reshape(-1,1)
+        kde = KernelDensity(bandwidth=bWidth,kernel=kernel).fit(obs)
+        if x is None : x=np.unique(obs).reshape(-1,1)
+        if len(x.shape)==1 : x=x.reshape(-1,1)
+        logProb = kde.score_samples(x)
+        pdf = pd.Series(np.exp(logProb), index = x.flatten())
+        return pdf
 
